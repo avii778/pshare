@@ -1,3 +1,4 @@
+use std::alloc::System;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
 use tokio::fs;
@@ -35,7 +36,15 @@ impl Connection {
 
         let path = Path::new(&path_to_write);
 
-       //  let mut file = OpenOptions (create or write)
+        let mut file = OpenOptions::new().write(true).open(path_to_write);
+        let mut buffer = Vec::new();
+        socket.read(&mut buffer).await.expect("Error reading from stream ");
+
+        match file?.write(&*buffer).await {
+
+            Err(e) => {println!("Error writing to file")}
+        }
+
 
         Ok(())
 
