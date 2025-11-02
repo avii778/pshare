@@ -15,14 +15,14 @@ pub enum Cmd {
     #[arg(long, default_value = "0.0.0.0:9000")]
     bind: String,
 
-    #[arg(long, default_value = ".")]
-    out_dir: std::path::PathBuf,
+    #[arg(long, value_name = "OUT_FILE")]
+    out_file: std::path::PathBuf,
     },
 
     Send {
 
-        #[arg(long, default_value = "0.0.0.0:9000")]
-        bind: String,
+        #[arg(long)]
+        send_to: String,
 
         #[arg(long)]
         file: std::path::PathBuf

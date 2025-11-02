@@ -3,57 +3,50 @@ mod networks;
 
 use cli::{CLI, Cmd};
 use clap::Parser;
-use crate::networks::Connection;
+use crate::networks::{Connection, Postman};
 
 #[tokio::main]
 async fn main() {
-
     let args = CLI::parse();
 
     match args.cmd {
 
-        Cmd::Receive {bind, out_dir} => {
+        Cmd::Receive { bind, out_file } => {
 
-            let networks = Connection::new_connection(bind).await;
+            match Connection::new_connection(bind).await {
 
-            match networks.unwrap() {
-                Err(E) => {println!("Error communicating with address")}
-
-                Ok(connection) => {
-                    let read = connection.read_file(out_dir).await;
-
-                    match read.unwrap() {
-
-                        Err(E) => {println!("Error reading from stream")}
-
-                        Ok(T) => {println!("Recieved file, stored at: {}", out_dir.as_os_str())}
-                    }
+                Err(e) => {
+                    println!("Error communicating with address: {:?}", e);
                 }
-            }
-
-        }
-
-        Cmd::Send {bind, file} => {
-
-            let networks = Connection::new_connection(bind).await;
-
-            match networks.unwrap() {
-                Err(E) => {println!("Error communicating with address")}
 
                 Ok(connection) => {
 
-                    let write = connection.write_file(file);
+                    match connection.read_file(out_file.clone()).await {
+                        Err(e) => println!("Error reading from stream: {:?}", e),
 
-                    match write.unwrap() {
+                        Ok(_) => println!("Received file, stored at: {}", out_file.display()),
 
-                        Err(E) => {println!("Error writing to stream")}
-
-                        Ok(T) => {println!("Recieved file, stored at: {}", file.as_os_str())}
                     }
-
                 }
             }
         }
 
+        Cmd::Send { send_to, file } => {
+
+            match Postman::new_postman(send_to).await {
+
+                Err(e) => {
+                    println!("Error communicating with address: {:?}", e);
+                }
+
+                Ok(mut postman) => {
+                    match postman.send_file(file).await {
+                        Err(e) => println!("Error writing to stream: {:?}", e),
+                        Ok(_) => println!("Sent file successfully"),
+                    }
+                }
+
+            }
+        }
     }
 }
